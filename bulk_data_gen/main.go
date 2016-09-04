@@ -124,8 +124,6 @@ func main() {
 		serializer = (*Point).SerializeESBulk
 	case "cassandra":
 		serializer = (*Point).SerializeCassandra
-	case "mongo":
-		serializer = (*Point).SerializeMongo
 	default:
 		panic("unreachable")
 	}
