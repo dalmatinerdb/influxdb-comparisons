@@ -232,14 +232,20 @@ func fprintStats(w io.Writer, statGroups map[string]*StatGroup) {
 	sort.Strings(keys)
 	for _, k := range keys {
 		v := statGroups[k]
+		p95 := v.Percentile(0.95)
+		p99 := v.Percentile(0.99)
 		minRate := 1e3 / v.Min
 		meanRate := 1e3 / v.Mean
+		p95Rate := 1e3 / p95
+		p99Rate := 1e3 / p99
 		maxRate := 1e3 / v.Max
 		paddedKey := fmt.Sprintf("%s", k)
 		for len(paddedKey) < maxKeyLength {
 			paddedKey += " "
 		}
-		_, err := fmt.Fprintf(w, "%s : min: %8.2fms (%7.2f/sec), mean: %8.2fms (%7.2f/sec), max: %7.2fms (%6.2f/sec), count: %8d, sum: %5.1fsec \n", paddedKey, v.Min, minRate, v.Mean, meanRate, v.Max, maxRate, v.Count, v.Sum/1e3)
+		sort.Float64s(v.Items)
+
+		_, err := fmt.Fprintf(w, "%s : min: %8.2fms (%7.2f/sec), mean: %8.2fms (%7.2f/sec), 95%%: %7.2fms (%6.2f/sec), 99%%: %7.2fms (%6.2f/sec), max: %7.2fms (%6.2f/sec), count: %8d, sum: %5.1fsec \n", paddedKey, v.Min, minRate, v.Mean, meanRate, p95, p95Rate, p99, p99Rate, v.Max, maxRate, v.Count, v.Sum/1e3)
 		if err != nil {
 			log.Fatal(err)
 		}

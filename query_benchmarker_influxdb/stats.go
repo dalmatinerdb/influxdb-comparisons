@@ -1,6 +1,8 @@
 package main
 
 import "fmt"
+import "sort"
+
 
 // Stat represents one statistical measurement.
 type Stat struct {
@@ -21,7 +23,7 @@ type StatGroup struct {
 	Max  float64
 	Mean float64
 	Sum  float64
-
+	Items []float64
 	Count int64
 }
 
@@ -33,8 +35,13 @@ func (s *StatGroup) Push(n float64) {
 		s.Mean = n
 		s.Count = 1
 		s.Sum = n
+		s.Items = append(s.Items, n)
 		return
 	}
+
+	s.Items = append(s.Items, n)
+
+	sort.Float64s(s.Items)
 
 	if n < s.Min {
 		s.Min = n
@@ -42,7 +49,6 @@ func (s *StatGroup) Push(n float64) {
 	if n > s.Max {
 		s.Max = n
 	}
-
 	s.Sum += n
 
 	// constant-space mean update:
@@ -51,8 +57,13 @@ func (s *StatGroup) Push(n float64) {
 
 	s.Count++
 }
+func (s *StatGroup) Percentile(P float64) float64 {
+	var Len int
+	Len = len(s.Items)
+	return s.Items[int(float64(Len) * P)]
+}
 
 // String makes a simple description of a StatGroup.
 func (s *StatGroup) String() string {
-	return fmt.Sprintf("min: %f, max: %f, mean: %f, count: %d, sum: %f", s.Min, s.Max, s.Mean, s.Count, s.Sum)
+	return fmt.Sprintf("Min: %f/%f, max: %f, mean: %f, count: %d, sum: %f", s.Min, s.Items[0], s.Max, s.Mean, s.Count, s.Sum)
 }
